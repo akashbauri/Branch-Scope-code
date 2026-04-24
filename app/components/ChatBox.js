@@ -1,9 +1,9 @@
 export default function ChatBox({
-  chat,
-  question,
+  chat = [],
+  question = "",
   setQuestion,
   ask,
-  loading,
+  loading = false,
 }) {
   return (
     <div className="flex flex-col h-full">
@@ -36,7 +36,7 @@ export default function ChatBox({
           </div>
         ))}
 
-        {/* Loading indicator */}
+        {/* Loading */}
         {loading && (
           <div className="flex justify-start">
             <div className="bg-gray-700 px-4 py-2 rounded-lg text-sm animate-pulse">
@@ -47,14 +47,14 @@ export default function ChatBox({
 
       </div>
 
-      {/* Input Section */}
+      {/* Input */}
       <div className="flex mt-3">
 
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") ask(); // 🔥 Enter to send
+            if (e.key === "Enter") ask();
           }}
           placeholder="Ask about your future..."
           className="flex-1 p-3 bg-gray-700 rounded-l-lg outline-none text-sm"
