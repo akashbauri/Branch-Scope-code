@@ -23,29 +23,26 @@ export default function Home() {
       const res = await fetch("/api/ask", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json", // ✅ FIXED
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ program, question }),
       });
 
       const data = await res.json();
 
-      if (!data?.data) {
-        throw new Error("Invalid response from server");
-      }
-
       setChat([
         ...updated,
-        { role: "ai", text: data.data.suggestion || "No response" },
+        {
+          role: "ai",
+          text: data?.data?.suggestion || "No response",
+        },
       ]);
 
       setResult(data.data);
     } catch (error) {
-      console.error(error);
-
       setChat([
         ...updated,
-        { role: "ai", text: "⚠️ Something went wrong. Try again." },
+        { role: "ai", text: "⚠️ Error. Try again." },
       ]);
     } finally {
       setLoading(false);
@@ -59,30 +56,26 @@ export default function Home() {
       {/* Sidebar */}
       <Sidebar program={program} setProgram={setProgram} />
 
-      {/* Main Content */}
+      {/* Main */}
       <div className="flex-1 p-6">
 
         <h1 className="text-2xl font-bold mb-4">
-          AI Career Simulation 🚀
+          BranchScope AI 🚀
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[80vh]">
 
-          {/* Chat Section */}
-          <div className="flex flex-col">
-            <ChatBox
-              chat={chat}
-              question={question}
-              setQuestion={setQuestion}
-              ask={ask}
-              loading={loading}
-            />
-          </div>
+          {/* Chat */}
+          <ChatBox
+            chat={chat}
+            question={question}
+            setQuestion={setQuestion}
+            ask={ask}
+            loading={loading}
+          />
 
-          {/* Result Section */}
-          <div>
-            <ResultCard result={result} />
-          </div>
+          {/* Result */}
+          <ResultCard result={result} />
 
         </div>
       </div>
