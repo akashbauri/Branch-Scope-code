@@ -28,6 +28,8 @@ export default function Home() {
         body: JSON.stringify({ program, question }),
       });
 
+      if (!res.ok) throw new Error("API failed");
+
       const data = await res.json();
 
       setChat([
@@ -38,11 +40,13 @@ export default function Home() {
         },
       ]);
 
-      setResult(data.data);
+      setResult(data?.data || null);
     } catch (error) {
+      console.error(error);
+
       setChat([
         ...updated,
-        { role: "ai", text: "⚠️ Error. Try again." },
+        { role: "ai", text: "⚠️ Server error. Try again." },
       ]);
     } finally {
       setLoading(false);
