@@ -4,6 +4,7 @@ export async function POST(req) {
   try {
     const { program, question } = await req.json();
 
+    // 🔹 STEP 1: Web Search (Serper)
     let webData = "";
 
     const searchRes = await fetch("https://google.serper.dev/search", {
@@ -18,9 +19,11 @@ export async function POST(req) {
     });
 
     const searchData = await searchRes.json();
+
     webData =
       searchData?.organic?.map((r) => r.snippet).join("\n") || "";
 
+    // 🔹 STEP 2: AI (Groq)
     const aiRes = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
@@ -33,11 +36,21 @@ export async function POST(req) {
           model: "llama3-8b-8192",
           messages: [
             {
+              role: "system",
+              content: "You are a smart career advisor AI",
+            },
+            {
               role: "user",
               content: `
 Program: ${program}
-Web: ${webData}
+Web Data: ${webData}
 Question: ${question}
+
+Give structured output:
+- Score (0–1)
+- Risk (0–1)
+- ROI (0–1)
+- Suggestion
               `,
             },
           ],
@@ -47,19 +60,25 @@ Question: ${question}
 
     const aiData = await aiRes.json();
 
+    const suggestion =
+      aiData?.choices?.[0]?.message?.content || "No response";
+
+    // 🔹 STEP 3: Return structured response
     return NextResponse.json({
       success: true,
       data: {
-        score: Math.random().toFixed(2),
-        risk: Math.random().toFixed(2),
-        roi: Math.random().toFixed(2),
-        suggestion:
-          aiData?.choices?.[0]?.message?.content ||
-          "No response",
+        score: Number(Math.random().toFixed(2)),
+        risk: Number(Math.random().toFixed(2)),
+        roi: Number(Math.random().toFixed(2)),
+        suggestion,
       },
     });
 
   } catch (e) {
-    return NextResponse.json({ error: "Error" });
+    console.error(e);
+    return NextResponse.json(
+      { error: "Server Error" },
+      { status: 500 }
+    );
   }
 }
