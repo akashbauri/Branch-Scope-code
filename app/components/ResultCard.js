@@ -1,12 +1,12 @@
-export default function ResultCard({ result }) {
-  if (!result) return <div className="bg-gray-800 p-4 rounded">No data</div>;
+export default function CareerAnalysisCard({ result }) {
+  if (!result) return <div>No Data</div>;
 
   return (
-    <div className="bg-gray-800 p-4 rounded">
-      <h2 className="text-xl mb-2">Analysis</h2>
+    <div className="bg-gray-800 p-4">
       <p>Score: {result.score}</p>
       <p>Risk: {result.risk}</p>
       <p>ROI: {result.roi}</p>
+      <p>{result.suggestion}</p>
     </div>
   );
 }
