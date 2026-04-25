@@ -6,13 +6,14 @@ export async function POST(req) {
 
     if (!program || !question) {
       return NextResponse.json(
-        { error: "Missing program or question" },
+        { error: "Missing data" },
         { status: 400 }
       );
     }
 
-    // 🔹 STEP 1: Serper (web search)
+    // 🔹 SERPER SEARCH
     let webData = "";
+
     try {
       const searchRes = await fetch("https://google.serper.dev/search", {
         method: "POST",
@@ -21,21 +22,21 @@ export async function POST(req) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          q: `${program} career scope India USA salary`,
+          q: `${program} career scope India salary`,
         }),
       });
 
-      if (searchRes.ok) {
-        const searchData = await searchRes.json();
-        webData =
-          searchData?.organic?.map((r) => r.snippet).join("\n") || "";
-      }
+      const searchData = await searchRes.json();
+
+      webData =
+        searchData?.organic?.map((r) => r.snippet).join("\n") || "";
     } catch (e) {
-      console.error("Serper error:", e);
+      console.log("Serper failed");
     }
 
-    // 🔹 STEP 2: Groq AI
+    // 🔹 GROQ AI
     let suggestion = "No response";
+
     try {
       const aiRes = await fetch(
         "https://api.groq.com/openai/v1/chat/completions",
@@ -50,20 +51,16 @@ export async function POST(req) {
             messages: [
               {
                 role: "system",
-                content: "You are a smart career advisor AI",
+                content: "You are a career advisor AI",
               },
               {
                 role: "user",
                 content: `
 Program: ${program}
-Web Data: ${webData}
+Web: ${webData}
 Question: ${question}
 
-Give structured output:
-- Score (0–1)
-- Risk (0–1)
-- ROI (0–1)
-- Suggestion
+Give clear career advice.
                 `,
               },
             ],
@@ -71,16 +68,14 @@ Give structured output:
         }
       );
 
-      if (aiRes.ok) {
-        const aiData = await aiRes.json();
-        suggestion =
-          aiData?.choices?.[0]?.message?.content || "No response";
-      }
+      const aiData = await aiRes.json();
+
+      suggestion =
+        aiData?.choices?.[0]?.message?.content || "No response";
     } catch (e) {
-      console.error("Groq error:", e);
+      console.log("AI failed");
     }
 
-    // 🔹 STEP 3: Response
     return NextResponse.json({
       success: true,
       data: {
@@ -90,8 +85,10 @@ Give structured output:
         suggestion,
       },
     });
-  } catch (e) {
-    console.error("API ERROR:", e);
+
+  } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
       { error: "Server Error" },
       { status: 500 }
