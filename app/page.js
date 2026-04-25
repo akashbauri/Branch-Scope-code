@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "./components/Sidebar";
-import ChatBox from "./components/ChatBox";
-import ResultCard from "./components/ResultCard";
+import ProgramSelector from "./components/ProgramSelector";
+import AIChatPanel from "./components/AIChatPanel";
+import CareerAnalysisCard from "./components/CareerAnalysisCard";
 
 export default function Home() {
   const [program, setProgram] = useState("cse");
@@ -22,7 +22,9 @@ export default function Home() {
     try {
       const res = await fetch("/api/ask", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ program, question }),
       });
 
@@ -30,12 +32,18 @@ export default function Home() {
 
       setChat([
         ...updated,
-        { role: "ai", text: data?.data?.suggestion || "No response" },
+        {
+          role: "ai",
+          text: data?.data?.suggestion || "No response",
+        },
       ]);
 
       setResult(data.data);
-    } catch {
-      setChat([...updated, { role: "ai", text: "Error..." }]);
+    } catch (err) {
+      setChat([
+        ...updated,
+        { role: "ai", text: "⚠️ Error. Try again." },
+      ]);
     }
 
     setLoading(false);
@@ -43,21 +51,32 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar program={program} setProgram={setProgram} />
+    <div className="flex min-h-screen bg-gray-950 text-white">
 
+      {/* Sidebar */}
+      <ProgramSelector program={program} setProgram={setProgram} />
+
+      {/* Main */}
       <div className="flex-1 p-6">
-        <h1 className="text-3xl font-bold mb-4">BranchScope 🚀</h1>
 
-        <div className="grid md:grid-cols-2 gap-4 h-[80vh]">
-          <ChatBox
+        <h1 className="text-3xl font-bold mb-6">
+          BranchScope AI 🚀
+        </h1>
+
+        <div className="grid md:grid-cols-2 gap-6 h-[80vh]">
+
+          {/* Chat */}
+          <AIChatPanel
             chat={chat}
             question={question}
             setQuestion={setQuestion}
             ask={ask}
             loading={loading}
           />
-          <ResultCard result={result} />
+
+          {/* Result */}
+          <CareerAnalysisCard result={result} />
+
         </div>
       </div>
     </div>
