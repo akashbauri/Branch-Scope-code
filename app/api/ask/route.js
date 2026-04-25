@@ -4,9 +4,9 @@ export async function POST(req) {
   try {
     const { program, question } = await req.json();
 
-    // 🔹 STEP 1: Web Search (Serper)
     let webData = "";
 
+    // 🔹 SERPER SEARCH
     const searchRes = await fetch("https://google.serper.dev/search", {
       method: "POST",
       headers: {
@@ -23,7 +23,7 @@ export async function POST(req) {
     webData =
       searchData?.organic?.map((r) => r.snippet).join("\n") || "";
 
-    // 🔹 STEP 2: AI (Groq)
+    // 🔹 GROQ AI
     const aiRes = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
       {
@@ -37,7 +37,7 @@ export async function POST(req) {
           messages: [
             {
               role: "system",
-              content: "You are a smart career advisor AI",
+              content: "You are a career advisor AI",
             },
             {
               role: "user",
@@ -46,11 +46,8 @@ Program: ${program}
 Web Data: ${webData}
 Question: ${question}
 
-Give structured output:
-- Score (0–1)
-- Risk (0–1)
-- ROI (0–1)
-- Suggestion
+Give:
+Score, Risk, ROI, Suggestion
               `,
             },
           ],
@@ -60,24 +57,19 @@ Give structured output:
 
     const aiData = await aiRes.json();
 
-    const suggestion =
-      aiData?.choices?.[0]?.message?.content || "No response";
-
     return NextResponse.json({
       success: true,
       data: {
         score: Number(Math.random().toFixed(2)),
         risk: Number(Math.random().toFixed(2)),
         roi: Number(Math.random().toFixed(2)),
-        suggestion,
+        suggestion:
+          aiData?.choices?.[0]?.message?.content || "No response",
       },
     });
 
   } catch (e) {
-    console.error("API ERROR:", e);
-    return NextResponse.json(
-      { error: "Server Error" },
-      { status: 500 }
-    );
+    console.error(e);
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
