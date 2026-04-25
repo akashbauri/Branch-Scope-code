@@ -1,87 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import Sidebar from "./components/Sidebar";
-import ChatBox from "./components/ChatBox";
-import ResultCard from "./components/ResultCard";
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
-  const [program, setProgram] = useState("cse");
-  const [question, setQuestion] = useState("");
-  const [chat, setChat] = useState([]);
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+export default function Login() {
+  const router = useRouter();
 
-  const ask = async () => {
-    if (!question.trim()) return;
-
-    const updated = [...chat, { role: "user", text: question }];
-    setChat(updated);
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ program, question }),
-      });
-
-      if (!res.ok) throw new Error("API failed");
-
-      const data = await res.json();
-
-      setChat([
-        ...updated,
-        {
-          role: "ai",
-          text: data?.data?.suggestion || "No response",
-        },
-      ]);
-
-      setResult(data?.data || null);
-    } catch (error) {
-      console.error(error);
-
-      setChat([
-        ...updated,
-        { role: "ai", text: "⚠️ Server error. Try again." },
-      ]);
-    } finally {
-      setLoading(false);
-      setQuestion("");
-    }
+  const login = async () => {
+    await signInWithPopup(auth, provider);
+    router.push("/");
   };
 
   return (
-    <div className="flex bg-black text-white min-h-screen">
-
-      {/* Sidebar */}
-      <Sidebar program={program} setProgram={setProgram} />
-
-      {/* Main */}
-      <div className="flex-1 p-6">
-
-        <h1 className="text-2xl font-bold mb-4">
-          BranchScope AI 🚀
-        </h1>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[80vh]">
-
-          {/* Chat */}
-          <ChatBox
-            chat={chat}
-            question={question}
-            setQuestion={setQuestion}
-            ask={ask}
-            loading={loading}
-          />
-
-          {/* Result */}
-          <ResultCard result={result} />
-
-        </div>
+    <div className="flex items-center justify-center h-screen bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+        <h1 className="text-2xl mb-4">Login to BranchScope</h1>
+        <button
+          onClick={login}
+          className="bg-blue-600 px-6 py-2 rounded hover:bg-blue-700"
+        >
+          Sign in with Google
+        </button>
       </div>
     </div>
   );
