@@ -6,19 +6,19 @@ export async function POST(req) {
 
     if (!program || !question) {
       return NextResponse.json(
-        { error: "Missing data" },
+        { error: "Missing inputs" },
         { status: 400 }
       );
     }
 
-    // 🔹 SERPER SEARCH
     let webData = "";
 
+    // 🔹 SERPER (SAFE)
     try {
       const searchRes = await fetch("https://google.serper.dev/search", {
         method: "POST",
         headers: {
-          "X-API-KEY": process.env.SERPER_API_KEY,
+          "X-API-KEY": process.env.SERPER_API_KEY || "",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -26,17 +26,16 @@ export async function POST(req) {
         }),
       });
 
-      const searchData = await searchRes.json();
-
+      const data = await searchRes.json();
       webData =
-        searchData?.organic?.map((r) => r.snippet).join("\n") || "";
+        data?.organic?.map((r) => r.snippet).join("\n") || "";
     } catch (e) {
       console.log("Serper failed");
     }
 
-    // 🔹 GROQ AI
     let suggestion = "No response";
 
+    // 🔹 GROQ (SAFE)
     try {
       const aiRes = await fetch(
         "https://api.groq.com/openai/v1/chat/completions",
@@ -44,24 +43,15 @@ export async function POST(req) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+            Authorization: `Bearer ${process.env.GROQ_API_KEY || ""}`,
           },
           body: JSON.stringify({
             model: "llama3-8b-8192",
             messages: [
-              {
-                role: "system",
-                content: "You are a career advisor AI",
-              },
+              { role: "system", content: "Career advisor AI" },
               {
                 role: "user",
-                content: `
-Program: ${program}
-Web: ${webData}
-Question: ${question}
-
-Give clear career advice.
-                `,
+                content: `Program: ${program}\n${webData}\n${question}`,
               },
             ],
           }),
@@ -69,7 +59,6 @@ Give clear career advice.
       );
 
       const aiData = await aiRes.json();
-
       suggestion =
         aiData?.choices?.[0]?.message?.content || "No response";
     } catch (e) {
@@ -79,18 +68,17 @@ Give clear career advice.
     return NextResponse.json({
       success: true,
       data: {
-        score: Number(Math.random().toFixed(2)),
-        risk: Number(Math.random().toFixed(2)),
-        roi: Number(Math.random().toFixed(2)),
+        score: 0.7,
+        risk: 0.3,
+        roi: 0.8,
         suggestion,
       },
     });
 
-  } catch (error) {
-    console.error(error);
-
+  } catch (err) {
+    console.error(err);
     return NextResponse.json(
-      { error: "Server Error" },
+      { error: "Server error" },
       { status: 500 }
     );
   }
