@@ -63,7 +63,6 @@ Give structured output:
     const suggestion =
       aiData?.choices?.[0]?.message?.content || "No response";
 
-    // 🔹 STEP 3: Return structured response
     return NextResponse.json({
       success: true,
       data: {
@@ -75,7 +74,7 @@ Give structured output:
     });
 
   } catch (e) {
-    console.error(e);
+    console.error("API ERROR:", e);
     return NextResponse.json(
       { error: "Server Error" },
       { status: 500 }
