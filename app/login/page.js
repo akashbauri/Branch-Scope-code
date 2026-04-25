@@ -1,21 +1,26 @@
 "use client";
 
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
+
   const login = async () => {
-    const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
-    window.location.href = "/";
+    router.push("/");
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-black text-white">
-      <div className="bg-gray-800 p-6 rounded-xl">
-        <h1 className="mb-4">Login</h1>
-        <button onClick={login} className="bg-blue-600 px-4 py-2 rounded">
-          Login with Google
+    <div className="flex items-center justify-center h-screen bg-gray-900">
+      <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+        <h1 className="text-2xl mb-4">Login to BranchScope</h1>
+        <button
+          onClick={login}
+          className="bg-blue-600 px-6 py-2 rounded hover:bg-blue-700"
+        >
+          Sign in with Google
         </button>
       </div>
     </div>
