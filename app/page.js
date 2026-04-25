@@ -1,6 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { useRouter } from "next/navigation";
+
 import ProgramSelector from "./components/ProgramSelector";
 import AIChatPanel from "./components/AIChatPanel";
 import CareerAnalysisCard from "./components/CareerAnalysisCard";
@@ -10,74 +14,50 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [chat, setChat] = useState([]);
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (!user) router.push("/login");
+    });
+  }, []);
 
   const ask = async () => {
-    if (!question.trim()) return;
+    if (!question) return;
 
     const updated = [...chat, { role: "user", text: question }];
     setChat(updated);
-    setLoading(true);
 
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ program, question }),
-      });
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ program, question }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      setChat([
-        ...updated,
-        {
-          role: "ai",
-          text: data?.data?.suggestion || "No response",
-        },
-      ]);
-
-      setResult(data.data);
-    } catch (err) {
-      setChat([
-        ...updated,
-        { role: "ai", text: "⚠️ Error. Try again." },
-      ]);
-    }
-
-    setLoading(false);
+    setChat([...updated, { role: "ai", text: data.data.suggestion }]);
+    setResult(data.data);
     setQuestion("");
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-950 text-white">
+    <div className="flex bg-black text-white min-h-screen">
 
-      {/* Sidebar */}
       <ProgramSelector program={program} setProgram={setProgram} />
 
-      {/* Main */}
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-6 grid grid-cols-2 gap-4">
+        <AIChatPanel
+          chat={chat}
+          question={question}
+          setQuestion={setQuestion}
+          ask={ask}
+        />
 
-        <h1 className="text-3xl font-bold mb-6">
-          BranchScope AI 🚀
-        </h1>
-
-        <div className="grid md:grid-cols-2 gap-6 h-[80vh]">
-
-          {/* Chat */}
-          <AIChatPanel
-            chat={chat}
-            question={question}
-            setQuestion={setQuestion}
-            ask={ask}
-            loading={loading}
-          />
-
-          {/* Result */}
-          <CareerAnalysisCard result={result} />
-
-        </div>
+        <CareerAnalysisCard result={result} />
       </div>
     </div>
   );
