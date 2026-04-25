@@ -1,14 +1,12 @@
-import "./globals.css";
-
 export const metadata = {
   title: "BranchScope",
-  description: "AI Career Platform",
+  description: "AI Career Simulation Platform",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body style={{ margin: 0 }}>{children}</body>
     </html>
   );
 }
